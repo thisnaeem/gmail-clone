@@ -59,71 +59,7 @@ export default function Header({
 
   return (
     <>
-      <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
-        <div className="flex items-center justify-between px-4 py-2">
-          <div className="flex items-center flex-1 gap-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search in emails"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
-              />
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onRefresh}
-              className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700 transition-colors"
-            >
-              <ArrowPathIcon className="h-5 w-5" />
-            </button>
-
-            <div className="relative">
-              <button
-                onClick={() => setShowTooltip(!showTooltip)}
-                className="relative flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
-              >
-                <span className="sr-only">Open user menu</span>
-                {session?.user?.image ? (
-                  <Image
-                    className="h-8 w-8 rounded-full"
-                    src={session.user.image}
-                    alt=""
-                    width={32}
-                    height={32}
-                  />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-gray-700" />
-                )}
-              </button>
-
-              {showTooltip && (
-                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <button
-                    onClick={() => signOut()}
-                    className="block w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 text-left"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 px-4 py-2">
-          <button
-            onClick={() => setIsComposeOpen(true)}
-            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors flex items-center gap-2"
-          >
-            Compose
-          </button>
-        </div>
-      </header>
 
       <ComposeModal
         isOpen={isComposeOpen}
