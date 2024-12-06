@@ -66,6 +66,30 @@ const formatEmailDate = (dateString: string) => {
   });
 };
 
+// Add this new component for better loading skeleton
+const LoadingEmailSkeleton = () => (
+  <div className="flex items-center gap-4 px-4 py-3 border-b border-gray-700/50 animate-pulse">
+    {/* Checkbox */}
+    <div className="w-5 h-5 rounded bg-gray-700/50"></div>
+    {/* Star */}
+    <div className="w-5 h-5 rounded bg-gray-700/50"></div>
+    {/* Content */}
+    <div className="flex-1 flex items-center gap-4 min-w-0">
+      {/* Sender */}
+      <div className="w-[180px] h-5 bg-gray-700/50 rounded"></div>
+      {/* Subject and snippet */}
+      <div className="flex-1 space-y-2">
+        <div className="w-full flex gap-2">
+          <div className="w-1/3 h-5 bg-gray-700/50 rounded"></div>
+          <div className="w-2/3 h-5 bg-gray-700/50 rounded"></div>
+        </div>
+      </div>
+      {/* Date */}
+      <div className="w-20 h-5 bg-gray-700/50 rounded"></div>
+    </div>
+  </div>
+);
+
 export default function Home() {
   const { data: session, status } = useSession();
   const [isComposeOpen, setIsComposeOpen] = useState(false);
@@ -86,6 +110,7 @@ export default function Home() {
   } | null>(null);
 
   const observerTarget = useRef<HTMLDivElement>(null);
+  const deleteSound = useRef<HTMLAudioElement | null>(null);
 
   const folders = [
     { name: 'Inbox', icon: InboxIcon, id: 'inbox' },
@@ -160,11 +185,19 @@ export default function Home() {
     setSelectedEmails(new Set());
   }, [searchQuery]);
 
+  useEffect(() => {
+    // Initialize audio element
+    deleteSound.current = new Audio('/delete.mp3');
+  }, []);
+
   const toggleSelectAll = () => {
     if (selectedEmails.size === filteredEmails.length) {
+      // If all are selected, clear selection
       setSelectedEmails(new Set());
     } else {
-      setSelectedEmails(new Set(filteredEmails.map(email => email.id)));
+      // If not all are selected, select all visible emails
+      const newSelection = new Set(filteredEmails.map(email => email.id));
+      setSelectedEmails(newSelection);
     }
   };
 
@@ -203,31 +236,54 @@ export default function Home() {
   };
 
   const handleConfirmAction = async () => {
-    if (!confirmAction) return;
+    if (!confirmAction || selectedEmails.size === 0) return;
 
     try {
-      const response = await fetch('/api/emails/action', {
+      let endpoint = '/api/emails/action';
+      if (confirmAction.type === 'trash') {
+        endpoint = '/api/emails/delete';
+      }
+
+      // First update UI optimistically
+      const deletedIds = new Set(Array.from(selectedEmails));
+      setEmails(prev => prev.filter(email => !deletedIds.has(email.id)));
+      setSelectedEmails(new Set());
+      setShowConfirmModal(false);
+      setConfirmAction(null);
+
+      // Then make API call
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          ids: Array.from(deletedIds),
           action: confirmAction.type,
-          emailIds: Array.from(selectedEmails),
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to perform action');
+      if (!response.ok) {
+        throw new Error('Failed to delete emails');
+      }
 
-      // Remove affected emails from the list
-      setEmails(prev => prev.filter(email => !selectedEmails.has(email.id)));
-      setSelectedEmails(new Set());
+      // Play delete sound if action is 'trash'
+      if (confirmAction.type === 'trash' && deleteSound.current) {
+        try {
+          await deleteSound.current.play();
+        } catch (error) {
+          console.error('Error playing delete sound:', error);
+        }
+      }
+
+      // Refresh the email list to ensure sync with server
+      await loadInitialEmails();
     } catch (error) {
       console.error('Error performing action:', error);
+      // Show error message and revert changes
+      alert('Failed to delete emails. Please try again.');
+      await loadInitialEmails(); // Reload to revert changes
     }
-
-    setShowConfirmModal(false);
-    setConfirmAction(null);
   };
 
   const handleRefresh = () => {
@@ -392,16 +448,27 @@ export default function Home() {
         {/* Email List */}
         <div className="flex-1 overflow-auto">
           {loading ? (
-            <div className="space-y-1">
-              <LoadingEmailItem />
-              <LoadingEmailItem />
-              <LoadingEmailItem />
-              <LoadingEmailItem />
-              <LoadingEmailItem />
+            <div className="divide-y divide-gray-700/50">
+              {[...Array(8)].map((_, index) => (
+                <LoadingEmailSkeleton key={index} />
+              ))}
             </div>
           ) : filteredEmails.length === 0 ? (
-            <div className="text-center p-8 text-gray-400">
-              {searchQuery ? 'No emails found matching your search' : 'No emails found'}
+            <div className="flex flex-col items-center justify-center h-full p-8 text-gray-400 space-y-4">
+              <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
+                <InboxIcon className="w-8 h-8 text-gray-600" />
+              </div>
+              {searchQuery ? (
+                <>
+                  <p className="text-lg font-medium">No emails found matching your search</p>
+                  <p className="text-sm text-gray-500">Try different keywords or filters</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-lg font-medium">No emails found</p>
+                  <p className="text-sm text-gray-500">Your inbox is empty</p>
+                </>
+              )}
             </div>
           ) : (
             <>
@@ -460,7 +527,7 @@ export default function Home() {
                 </div>
               ))}
 
-              {/* Loading indicator */}
+              {/* Loading more indicator */}
               <div ref={observerTarget} className="py-4">
                 {loadingMore && (
                   <div className="flex justify-center">
