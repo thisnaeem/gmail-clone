@@ -358,18 +358,18 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-900">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
-      <div className="w-64 bg-gray-800 border-r border-gray-700 flex-shrink-0">
+      <div className="w-64 bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="p-4">
           <button 
             onClick={() => setIsComposeOpen(true)}
-            className="w-full bg-blue-600 text-white rounded-full py-3 px-6 flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-full py-3 px-6 flex items-center justify-center gap-2 transition-colors"
           >
             Compose
           </button>
         </div>
-        <div className="px-4 py-2 border-b border-gray-700">
+        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
             {session?.user?.image ? (
               <img
@@ -378,20 +378,20 @@ export default function Home() {
                 className="w-8 h-8 rounded-full"
               />
             ) : (
-              <UserCircleIcon className="w-8 h-8 text-gray-400" />
+              <UserCircleIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
             )}
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-white truncate">
+              <div className="font-medium text-gray-900 dark:text-white truncate">
                 {session?.user?.name || 'User'}
               </div>
-              <div className="text-gray-400 text-sm truncate">
+              <div className="text-gray-500 dark:text-gray-400 text-sm truncate">
                 {session?.user?.email || 'Loading...'}
               </div>
             </div>
             <button
               onClick={() => signOut()}
-              className="p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-full transition-colors tooltip"
-              data-tooltip="Sign out"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+              title="Sign out"
             >
               <ArrowRightOnRectangleIcon className="w-5 h-5" />
             </button>
@@ -404,9 +404,9 @@ export default function Home() {
               onClick={() => setSelectedFolder(folder.id)}
               className={`w-full flex items-center gap-3 px-6 py-3 text-sm ${
                 selectedFolder === folder.id
-                  ? 'bg-gray-700 text-blue-400'
-                  : 'text-gray-300 hover:bg-gray-700'
-              }`}
+                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              } transition-colors`}
             >
               <folder.icon className="w-5 h-5" />
               {folder.name}
@@ -416,7 +416,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-gray-900 min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-900">
         {/* Header */}
         <Header
           selectedCount={selectedEmails.size}
@@ -448,25 +448,25 @@ export default function Home() {
         {/* Email List */}
         <div className="flex-1 overflow-auto">
           {loading ? (
-            <div className="divide-y divide-gray-700/50">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700/50">
               {[...Array(8)].map((_, index) => (
                 <LoadingEmailSkeleton key={index} />
               ))}
             </div>
           ) : filteredEmails.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full p-8 text-gray-400 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
-                <InboxIcon className="w-8 h-8 text-gray-600" />
+            <div className="flex flex-col items-center justify-center h-full p-8 text-gray-500 dark:text-gray-400 space-y-4">
+              <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <InboxIcon className="w-8 h-8 text-gray-400 dark:text-gray-600" />
               </div>
               {searchQuery ? (
                 <>
-                  <p className="text-lg font-medium">No emails found matching your search</p>
-                  <p className="text-sm text-gray-500">Try different keywords or filters</p>
+                  <p className="text-lg font-medium text-gray-900 dark:text-gray-100">No emails found matching your search</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Try different keywords or filters</p>
                 </>
               ) : (
                 <>
-                  <p className="text-lg font-medium">No emails found</p>
-                  <p className="text-sm text-gray-500">Your inbox is empty</p>
+                  <p className="text-lg font-medium text-gray-900 dark:text-gray-100">No emails found</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Your inbox is empty</p>
                 </>
               )}
             </div>
@@ -476,7 +476,7 @@ export default function Home() {
                 <div
                   key={email.id}
                   onClick={() => setSelectedEmailId(email.id)}
-                  className="group flex items-center gap-2 px-4 py-2 hover:bg-gray-800/50 cursor-pointer border-b border-gray-700/50"
+                  className="group flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer border-b border-gray-200 dark:border-gray-700/50"
                 >
                   {/* Checkbox */}
                   <div 
@@ -484,8 +484,8 @@ export default function Home() {
                     className={`
                       w-5 h-5 rounded border cursor-pointer flex items-center justify-center transition-colors
                       ${selectedEmails.has(email.id)
-                        ? 'bg-blue-500 border-blue-500'
-                        : 'border-gray-600 group-hover:border-gray-400'
+                        ? 'bg-blue-500 border-blue-500 dark:bg-blue-600 dark:border-blue-600'
+                        : 'border-gray-300 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-500'
                       }
                     `}
                   >
@@ -496,7 +496,7 @@ export default function Home() {
 
                   {/* Star */}
                   <button 
-                    className="text-gray-500 hover:text-yellow-400 transition-colors"
+                    className="text-gray-400 dark:text-gray-500 hover:text-yellow-400 dark:hover:text-yellow-500 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
                       // Add star functionality here
@@ -508,19 +508,19 @@ export default function Home() {
                   {/* Email Content */}
                   <div className="flex-1 min-w-0 flex items-center gap-4">
                     {/* Sender */}
-                    <div className="w-48 truncate font-medium text-gray-200">
+                    <div className="w-48 truncate font-medium text-gray-900 dark:text-gray-200">
                       {email.from.split('<')[0].trim()}
                     </div>
 
                     {/* Subject and Snippet */}
                     <div className="flex-1 truncate">
-                      <span className="text-gray-200">{email.subject}</span>
-                      <span className="text-gray-400 mx-2">-</span>
-                      <span className="text-gray-400">{email.snippet}</span>
+                      <span className="text-gray-900 dark:text-gray-200">{email.subject}</span>
+                      <span className="text-gray-400 dark:text-gray-500 mx-2">-</span>
+                      <span className="text-gray-500 dark:text-gray-400">{email.snippet}</span>
                     </div>
 
                     {/* Date */}
-                    <div className="w-20 text-right text-sm text-gray-400 whitespace-nowrap">
+                    <div className="w-20 text-right text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       {formatEmailDate(email.date)}
                     </div>
                   </div>

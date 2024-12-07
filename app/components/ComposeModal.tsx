@@ -1,8 +1,18 @@
-import { Fragment, useState, useEffect } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
+'use client';
+
+import { useState } from 'react';
+import { 
+  XMarkIcon, 
+  MinusIcon,
+  PencilIcon, 
+  PaperClipIcon,
+  BoldIcon,
+  ItalicIcon,
+  UnderlineIcon,
+  ListBulletIcon as ListNumberIcon,
+  ListBulletIcon,
+} from '@heroicons/react/24/outline';
+import LoadingSpinner from './LoadingSpinner';
 
 interface ComposeModalProps {
   isOpen: boolean;
@@ -12,216 +22,273 @@ interface ComposeModalProps {
 export default function ComposeModal({ isOpen, onClose }: ComposeModalProps) {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
+  const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState('');
+  const [showFormatting, setShowFormatting] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
-  const editor = useEditor({
-    extensions: [StarterKit],
-    editorProps: {
-      attributes: {
-        class: 'prose prose-invert min-h-[200px] max-w-none p-4 focus:outline-none'
-      }
-    },
-    content: '',
-  });
-
-  // Reset form when modal is opened/closed
-  useEffect(() => {
-    if (!isOpen) {
-      setTo('');
-      setSubject('');
-      setError('');
-      if (editor) {
-        editor.commands.clearContent();
-      }
-    }
-  }, [isOpen, editor]);
+  const isValid = to.trim() !== '' && subject.trim() !== '' && content.trim() !== '';
 
   const handleSend = async () => {
-    if (!editor) return;
+    if (!isValid) return;
 
     try {
-      setError('');
-      
-      // Validate email
-      if (!to) {
-        setError('Please enter a recipient email address');
-        return;
-      }
-
-      if (!to.includes('@')) {
-        setError('Please enter a valid email address');
-        return;
-      }
-
-      // Validate subject
-      if (!subject.trim()) {
-        setError('Please enter a subject');
-        return;
-      }
-
-      // Get and validate content
-      const content = editor.getHTML();
-      if (!content || content === '<p></p>' || content === '<p><br></p>') {
-        setError('Please enter a message');
-        return;
-      }
-      
       setSending(true);
+      const response = await fetch('/api/emails/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to,
+          subject,
+          content,
+        }),
+      });
 
-      try {
-        const response = await fetch('/api/emails/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            to: to.trim(),
-            subject: subject.trim(),
-            content: content.trim(),
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to send email');
-        }
-
-        // Clear form and close modal on success
-        setTo('');
-        setSubject('');
-        editor.commands.clearContent();
-        onClose();
-      } catch (apiError: any) {
-        setError(apiError.message || 'Failed to send email. Please try again.');
+      if (!response.ok) {
+        throw new Error('Failed to send email');
       }
-    } catch (error: any) {
-      setError(error.message || 'An unexpected error occurred');
+
+      // Clear form and close modal
+      setTo('');
+      setSubject('');
+      setContent('');
+      onClose();
+    } catch (error) {
+      console.error('Error sending email:', error);
+      // Show error message to user
+      alert('Failed to send email. Please try again.');
     } finally {
       setSending(false);
     }
   };
 
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
-        </Transition.Child>
+  const handleDiscard = () => {
+    if (to || subject || content) {
+      if (window.confirm('Are you sure you want to discard this draft?')) {
+        setTo('');
+        setSubject('');
+        setContent('');
+        onClose();
+      }
+    } else {
+      onClose();
+    }
+  };
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-700/50 text-left align-middle shadow-xl transition-all">
-                <div className="flex items-center justify-between border-b border-gray-700/50 p-4 bg-gray-800/50 backdrop-blur-sm">
-                  <Dialog.Title className="text-lg font-medium text-white flex items-center gap-2">
-                    <span className="bg-blue-500/10 text-blue-400 p-1.5 rounded-lg">
-                      <PaperAirplaneIcon className="w-5 h-5" />
-                    </span>
-                    New Message
-                  </Dialog.Title>
-                  <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-300 transition-colors p-1 hover:bg-gray-700/50 rounded-lg"
-                  >
-                    <XMarkIcon className="w-6 h-6" />
-                  </button>
-                </div>
+  const toggleFormatting = () => {
+    setShowFormatting(!showFormatting);
+  };
 
-                <div className="p-6 space-y-6">
-                  {error && (
-                    <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-2 animate-shake">
-                      <div className="w-1 h-1 rounded-full bg-red-400"></div>
-                      {error}
-                    </div>
-                  )}
-                  
-                  <div className="space-y-4">
-                    <div className="group">
-                      <div className="relative">
-                        <input
-                          type="email"
-                          placeholder="To"
-                          value={to}
-                          onChange={(e) => setTo(e.target.value)}
-                          className="w-full bg-gray-800/50 text-white placeholder-gray-400 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 border border-gray-700/50 transition-all duration-200 group-hover:border-gray-600/50"
-                        />
-                        <div className="absolute inset-0 rounded-xl bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-                      </div>
-                    </div>
-                    
-                    <div className="group">
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Subject"
-                          value={subject}
-                          onChange={(e) => setSubject(e.target.value)}
-                          className="w-full bg-gray-800/50 text-white placeholder-gray-400 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 border border-gray-700/50 transition-all duration-200 group-hover:border-gray-600/50"
-                        />
-                        <div className="absolute inset-0 rounded-xl bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-                      </div>
-                    </div>
+  const toggleAttachment = () => {
+    // Implement attachment functionality
+  };
 
-                    <div className="group">
-                      <div className="relative">
-                        <div className="min-h-[300px] rounded-xl border border-gray-700/50 bg-gray-800/50 overflow-hidden transition-all duration-200 group-hover:border-gray-600/50">
-                          <EditorContent editor={editor} />
-                        </div>
-                        <div className="absolute inset-0 rounded-xl bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+  const handleFormat = (type: string) => {
+    // Implement formatting functionality
+  };
 
-                <div className="border-t border-gray-700/50 p-4 flex justify-end gap-3 bg-gray-800/30 backdrop-blur-sm">
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-1 focus:ring-offset-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSend}
-                    disabled={sending}
-                    className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-1 focus:ring-offset-gray-800 flex items-center gap-2
-                      ${sending ? 'bg-blue-500/50 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
-                  >
-                    {sending ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <PaperAirplaneIcon className="w-4 h-4" />
-                        Send
-                      </>
-                    )}
-                  </button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
+  const handleMinimize = () => {
+    setIsMinimized(true);
+  };
+
+  const handleMaximize = () => {
+    setIsMinimized(false);
+  };
+
+  if (!isOpen) return null;
+
+  if (isMinimized) {
+    return (
+      <div className="fixed bottom-0 right-4 z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-t-lg shadow-lg w-80">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+              {subject || 'New Message'}
+            </h3>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleMaximize}
+                className="p-1 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                <MinusIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={onClose}
+                className="p-1 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
-      </Dialog>
-    </Transition>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`fixed inset-0 z-50 ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+      {/* Backdrop */}
+      <div 
+        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+          isOpen ? 'opacity-100' : 'opacity-0'
+        }`}
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div 
+        className={`absolute bottom-4 right-4 w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-xl transform transition-all duration-300 ${
+          isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">New Message</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleMinimize}
+              className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <MinusIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 space-y-4">
+          {/* Recipients */}
+          <div>
+            <input
+              type="text"
+              placeholder="Recipients"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="w-full px-3 py-2 bg-transparent text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 focus:outline-none focus:border-blue-500 dark:focus:border-blue-600"
+            />
+          </div>
+
+          {/* Subject */}
+          <div>
+            <input
+              type="text"
+              placeholder="Subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full px-3 py-2 bg-transparent text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 focus:outline-none focus:border-blue-500 dark:focus:border-blue-600"
+            />
+          </div>
+
+          {/* Message */}
+          <div className="flex-1">
+            <textarea
+              placeholder="Write your message..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full h-64 px-3 py-2 bg-transparent text-gray-900 dark:text-gray-100 resize-none focus:outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-b-lg">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSend}
+              disabled={sending || !isValid}
+              className={`
+                px-4 py-2 rounded-lg font-medium transition-colors
+                ${isValid
+                  ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                }
+              `}
+            >
+              {sending ? (
+                <div className="flex items-center gap-2">
+                  <LoadingSpinner size="small" />
+                  <span>Sending...</span>
+                </div>
+              ) : (
+                'Send'
+              )}
+            </button>
+            <button
+              onClick={handleDiscard}
+              className="px-4 py-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              Discard
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleFormatting}
+              className={`
+                p-2 rounded-lg transition-colors
+                ${showFormatting
+                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }
+              `}
+            >
+              <PencilIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={toggleAttachment}
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <PaperClipIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Formatting toolbar */}
+        {showFormatting && (
+          <div className="absolute bottom-full left-0 right-0 p-2 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 rounded-t-lg shadow-lg">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleFormat('bold')}
+                className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              >
+                <BoldIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleFormat('italic')}
+                className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              >
+                <ItalicIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleFormat('underline')}
+                className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              >
+                <UnderlineIcon className="w-4 h-4" />
+              </button>
+              <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
+              <button
+                onClick={() => handleFormat('list')}
+                className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              >
+                <ListBulletIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleFormat('numbered-list')}
+                className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              >
+                <ListNumberIcon className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 } 

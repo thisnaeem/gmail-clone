@@ -1,10 +1,14 @@
-'use client';
-
-import { Inter } from 'next/font/google';
-import { SessionProvider } from 'next-auth/react';
 import './globals.css';
+import { Inter } from 'next/font/google';
+import { Metadata } from 'next';
+import Providers from './components/Providers';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const metadata: Metadata = {
+  title: 'Modern Gmail Clone',
+  description: 'A modern Gmail clone built with Next.js and Tailwind CSS',
+};
 
 export default function RootLayout({
   children,
@@ -12,9 +16,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <SessionProvider>{children}</SessionProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

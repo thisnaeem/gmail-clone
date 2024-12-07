@@ -14,6 +14,8 @@ import {
   StarIcon,
   PrinterIcon,
   ArrowTopRightOnSquareIcon,
+  ExclamationTriangleIcon,
+  UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import LoadingSpinner from './LoadingSpinner';
@@ -75,43 +77,43 @@ export default function EmailDetail({ emailId, onClose }: EmailDetailProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50">
-      <div className="w-full max-w-4xl bg-gradient-to-b from-gray-800 to-gray-900 h-full shadow-xl flex flex-col">
+      <div className="w-full max-w-4xl bg-white dark:bg-gray-800 h-full shadow-xl flex flex-col">
         {/* Header */}
-        <div className="px-4 py-2 border-b border-gray-700/50 flex items-center justify-between bg-gray-800/50 backdrop-blur-sm">
+        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 text-gray-400 hover:text-white"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <XMarkIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => {}}
-              className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 text-gray-400 hover:text-white"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <ArchiveBoxIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => {}}
-              className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 text-gray-400 hover:text-white"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
-              <ExclamationCircleIcon className="w-5 h-5" />
+              <ExclamationTriangleIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => {}}
-              className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 text-gray-400 hover:text-white"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <TrashIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => {}}
-              className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 text-gray-400 hover:text-white"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <EnvelopeIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => {}}
-              className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 text-gray-400 hover:text-white"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <ArrowUturnLeftIcon className="w-5 h-5" />
             </button>
@@ -120,13 +122,13 @@ export default function EmailDetail({ emailId, onClose }: EmailDetailProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {}}
-              className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 text-gray-400 hover:text-white"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <ChevronLeftIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => {}}
-              className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 text-gray-400 hover:text-white"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <ChevronRightIcon className="w-5 h-5" />
             </button>
@@ -142,99 +144,82 @@ export default function EmailDetail({ emailId, onClose }: EmailDetailProps) {
           ) : email ? (
             <div className="p-6 space-y-6">
               {/* Email Header */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="flex items-start justify-between">
-                  <h1 className="text-2xl font-semibold text-white flex-1">{email.subject}</h1>
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <button
-                      onClick={() => {}}
-                      className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 hover:text-white"
-                    >
-                      <PrinterIcon className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => {}}
-                      className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 hover:text-white"
-                    >
-                      <ArrowTopRightOnSquareIcon className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => {}}
-                      className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 hover:text-white"
-                    >
-                      <EllipsisHorizontalIcon className="w-5 h-5" />
-                    </button>
-                  </div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {email.subject}
+                  </h1>
+                  <button
+                    onClick={() => setIsStarred(!isStarred)}
+                    className={`p-1 rounded-full transition-colors ${
+                      isStarred
+                        ? 'text-yellow-500 bg-yellow-500/10'
+                        : 'text-gray-400 dark:text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10'
+                    }`}
+                  >
+                    <StarIcon className="w-6 h-6" />
+                  </button>
                 </div>
 
-                {/* Sender Info */}
-                <div className="flex items-start justify-between group">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center font-medium text-lg">
-                      {email.from.charAt(0).toUpperCase()}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                      <UserCircleIcon className="w-6 h-6 text-blue-500" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-white">{email.from.split('<')[0].trim()}</span>
-                        <span className="text-sm text-gray-400">{`<${email.from.split('<')[1]?.replace('>', '')}>`}</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                          {email.from.split('<')[0].trim()}
+                        </span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {`<${email.from.split('<')[1]?.replace('>', '')}>`}
+                        </span>
                       </div>
-                      <button 
+                      <button
                         onClick={() => setShowFullHeader(!showFullHeader)}
-                        className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+                        className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                       >
-                        to {email.to.split('@')[0]}
+                        {showFullHeader ? 'Show less' : 'Show more'}
                       </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <span className="text-sm">{formatDetailDate(email.date)}</span>
-                    <button
-                      onClick={() => setIsStarred(!isStarred)}
-                      className="p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-200 hover:text-yellow-400"
-                    >
-                      {isStarred ? (
-                        <StarIconSolid className="w-5 h-5 text-yellow-400" />
-                      ) : (
-                        <StarIcon className="w-5 h-5" />
-                      )}
-                    </button>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {new Date(email.date).toLocaleString()}
                   </div>
                 </div>
 
-                {/* Full Header Details */}
                 {showFullHeader && (
-                  <div className="p-4 bg-gray-800/50 backdrop-blur-sm rounded-xl text-sm space-y-2 border border-gray-700/50">
+                  <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 space-y-2 text-sm">
                     <div>
-                      <span className="text-gray-400">From: </span>
-                      <span className="text-white">{email.from}</span>
+                      <span className="text-gray-500 dark:text-gray-400">To: </span>
+                      <span className="text-gray-900 dark:text-gray-100">{email.to}</span>
                     </div>
                     <div>
-                      <span className="text-gray-400">To: </span>
-                      <span className="text-white">{email.to}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Date: </span>
-                      <span className="text-white">{formatDetailDate(email.date)}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Subject: </span>
-                      <span className="text-white">{email.subject}</span>
+                      <span className="text-gray-500 dark:text-gray-400">Date: </span>
+                      <span className="text-gray-900 dark:text-gray-100">
+                        {new Date(email.date).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 )}
+              </div>
 
-                {/* Email Body */}
-                <div className="mt-6 border-t border-gray-700/50 pt-6">
-                  <div 
-                    className="prose prose-invert max-w-none prose-p:text-gray-300 prose-headings:text-white prose-strong:text-white prose-a:text-blue-400 hover:prose-a:text-blue-300 prose-pre:bg-gray-800/50 prose-pre:text-gray-300 prose-code:text-gray-300 prose-blockquote:text-gray-400 prose-blockquote:border-gray-700"
-                    dangerouslySetInnerHTML={{ __html: email.body }}
-                  />
-                </div>
+              {/* Email Body */}
+              <div className="prose dark:prose-invert max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: email.body }} />
               </div>
             </div>
           ) : (
-            <div className="flex justify-center items-center h-full text-gray-400">
-              Failed to load email content
+            <div className="flex flex-col items-center justify-center h-full p-8 text-gray-500 dark:text-gray-400">
+              <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <ExclamationTriangleIcon className="w-8 h-8 text-gray-400 dark:text-gray-600" />
+              </div>
+              <p className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
+                Failed to load email
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Please try again later
+              </p>
             </div>
           )}
         </div>
